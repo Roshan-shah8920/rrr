@@ -1,10 +1,13 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
   build: {
-    target: "es2015"
+    target: "esnext" // iPhone Safari ke liye zyada compatible
+  },
+  server: {
+    host: true, // network par test karne ke liye (iPhone same WiFi me chalega)
+    port: 3000
   }
-});
+})
