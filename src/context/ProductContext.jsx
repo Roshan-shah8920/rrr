@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import API_BASE_URL from "../config"; 
 
 const ProductContext = createContext();
 
@@ -15,8 +14,14 @@ export const ProductProvider = ({ children }) => {
     return storedUser ? JSON.parse(storedUser) : null;
   });
 
-  useEffect(() => { localStorage.setItem("cart", JSON.stringify(cart)); }, [cart]);
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // ✅ Remote backend URL from .env
 
+  // Cart localStorage update
+  useEffect(() => {
+    localStorage.setItem("cart", JSON.stringify(cart));
+  }, [cart]);
+
+  // Fetch all products
   const fetchProducts = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/products/product`);
@@ -28,6 +33,7 @@ export const ProductProvider = ({ children }) => {
     }
   };
 
+  // Fetch products by category
   const fetchProductsByCategory = async (category) => {
     try {
       const res = await fetch(`${API_BASE_URL}/products/category/${category}`);
@@ -39,7 +45,9 @@ export const ProductProvider = ({ children }) => {
     }
   };
 
-  useEffect(() => { fetchProducts(); }, []);
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
   const filterByCategory = (category) => {
     setSelectedCategory(category);
@@ -47,6 +55,7 @@ export const ProductProvider = ({ children }) => {
     else fetchProductsByCategory(category);
   };
 
+  // User login
   const loginUser = async (email, password) => {
     try {
       const res = await fetch(`${API_BASE_URL}/auth/login`, {
@@ -66,6 +75,7 @@ export const ProductProvider = ({ children }) => {
     }
   };
 
+  // User register
   const registerUser = async (userData) => {
     try {
       const res = await fetch(`${API_BASE_URL}/auth/register`, {
@@ -93,8 +103,12 @@ export const ProductProvider = ({ children }) => {
     localStorage.removeItem("cart");
   };
 
+  // Add to cart
   const addToCart = async (product) => {
-    if (!user) { alert("Please login first"); return; }
+    if (!user) {
+      alert("Please login first");
+      return;
+    }
     try {
       const res = await fetch(`${API_BASE_URL}/cart/add`, {
         method: "POST",
@@ -118,6 +132,7 @@ export const ProductProvider = ({ children }) => {
     }
   };
 
+  // Fetch cart
   const fetchCart = async () => {
     if (!user?._id) return;
     try {

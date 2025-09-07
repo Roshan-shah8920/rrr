@@ -11,12 +11,15 @@ const Home = () => {
   const [likedProducts, setLikedProducts] = useState({});
   const scrollRef = useRef(null);
 
+  // ✅ Use Vite env variable
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
   // Fetch products
   const fetchProducts = async () => {
     try {
-      // ✅ Use environment variable for backend URL
-      const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/products/product`);
+      const res = await fetch(`${API_BASE_URL}/products/product`);
       const data = await res.json();
+
       const bottleProducts = data.filter(
         (product) => product.category.toLowerCase() === "bootle"
       );
@@ -74,11 +77,17 @@ const Home = () => {
   };
 
   const scrollLeft = () => {
-    scrollRef.current.scrollBy({ left: -scrollRef.current.offsetWidth, behavior: "smooth" });
+    scrollRef.current.scrollBy({
+      left: -scrollRef.current.offsetWidth,
+      behavior: "smooth",
+    });
   };
 
   const scrollRight = () => {
-    scrollRef.current.scrollBy({ left: scrollRef.current.offsetWidth, behavior: "smooth" });
+    scrollRef.current.scrollBy({
+      left: scrollRef.current.offsetWidth,
+      behavior: "smooth",
+    });
   };
 
   return (
