@@ -14,15 +14,22 @@ const Home = () => {
   // Fetch products
   const fetchProducts = async () => {
     try {
-      const res = await fetch("http://localhost:4000/api/products/product");
+      // ✅ Use environment variable for backend URL
+      const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/products/product`);
       const data = await res.json();
       const bottleProducts = data.filter(
         (product) => product.category.toLowerCase() === "bootle"
       );
       setProducts(bottleProducts);
 
-      // Load wishlist from localStorage
-      const storedWishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
+      // Load wishlist safely
+      let storedWishlist = [];
+      try {
+        storedWishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
+      } catch (err) {
+        storedWishlist = [];
+      }
+
       const liked = {};
       storedWishlist.forEach((p) => (liked[p._id] = true));
       setLikedProducts(liked);
@@ -39,13 +46,19 @@ const Home = () => {
     navigate("/customnext", { state: { product } });
   };
 
-  // Toggle like / wishlist
+  // Toggle wishlist
   const toggleLike = (product) => {
     setLikedProducts((prev) => {
       const newLiked = { ...prev, [product._id]: !prev[product._id] };
 
-      // Update localStorage
-      const storedWishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
+      // Update localStorage safely
+      let storedWishlist = [];
+      try {
+        storedWishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
+      } catch (err) {
+        storedWishlist = [];
+      }
+
       if (newLiked[product._id]) {
         if (!storedWishlist.find((p) => p._id === product._id)) {
           storedWishlist.push(product);
@@ -54,8 +67,8 @@ const Home = () => {
         const index = storedWishlist.findIndex((p) => p._id === product._id);
         if (index > -1) storedWishlist.splice(index, 1);
       }
-      localStorage.setItem("wishlist", JSON.stringify(storedWishlist));
 
+      localStorage.setItem("wishlist", JSON.stringify(storedWishlist));
       return newLiked;
     });
   };
@@ -88,7 +101,7 @@ const Home = () => {
           <div
             className="d-flex gap-3 py-2 overflow-auto hide-scrollbar"
             ref={scrollRef}
-            style={{ scrollBehavior: "smooth" }}
+            style={{ scrollBehavior: "smooth", WebkitOverflowScrolling: "touch" }}
           >
             {products.map((product) => (
               <div
@@ -157,7 +170,6 @@ const Home = () => {
       <style>
         {`
           .hide-scrollbar::-webkit-scrollbar { display: none; }
-
           .product-card { width: 23%; }
 
           @media (max-width: 992px) { .product-card { width: 48% !important; } }

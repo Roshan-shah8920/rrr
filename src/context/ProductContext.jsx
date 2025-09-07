@@ -1,32 +1,22 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import API_BASE_URL from "../config";
+import API_BASE_URL from "../config"; 
 
-// 1️⃣ Context create karo
 const ProductContext = createContext();
 
-// 2️⃣ Provider component
 export const ProductProvider = ({ children }) => {
   const [products, setProducts] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("all");
-
-  // Cart ko localStorage se initialize karo
   const [cart, setCart] = useState(() => {
     const savedCart = localStorage.getItem("cart");
     return savedCart ? JSON.parse(savedCart) : [];
   });
-
-  // User ko localStorage se initialize karo
   const [user, setUser] = useState(() => {
     const storedUser = localStorage.getItem("user");
     return storedUser ? JSON.parse(storedUser) : null;
   });
 
-  // Cart ko localStorage me save karo jab bhi update ho
-  useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cart));
-  }, [cart]);
+  useEffect(() => { localStorage.setItem("cart", JSON.stringify(cart)); }, [cart]);
 
-  // Fetch all products
   const fetchProducts = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/products/product`);
@@ -38,7 +28,6 @@ export const ProductProvider = ({ children }) => {
     }
   };
 
-  // Fetch products by category
   const fetchProductsByCategory = async (category) => {
     try {
       const res = await fetch(`${API_BASE_URL}/products/category/${category}`);
@@ -50,9 +39,7 @@ export const ProductProvider = ({ children }) => {
     }
   };
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
+  useEffect(() => { fetchProducts(); }, []);
 
   const filterByCategory = (category) => {
     setSelectedCategory(category);
@@ -60,7 +47,6 @@ export const ProductProvider = ({ children }) => {
     else fetchProductsByCategory(category);
   };
 
-  // User login
   const loginUser = async (email, password) => {
     try {
       const res = await fetch(`${API_BASE_URL}/auth/login`, {
@@ -80,7 +66,6 @@ export const ProductProvider = ({ children }) => {
     }
   };
 
-  // User register
   const registerUser = async (userData) => {
     try {
       const res = await fetch(`${API_BASE_URL}/auth/register`, {
@@ -100,27 +85,22 @@ export const ProductProvider = ({ children }) => {
     }
   };
 
-  // Logout
   const logoutUser = () => {
     setUser(null);
-    setCart([]); // Logout par cart clear kar do
+    setCart([]);
     localStorage.removeItem("user");
     localStorage.removeItem("token");
     localStorage.removeItem("cart");
   };
 
-  // 🛒 Add to Cart
   const addToCart = async (product) => {
-    if (!user) {
-      alert("Please login first to add items to cart");
-      return;
-    }
+    if (!user) { alert("Please login first"); return; }
     try {
       const res = await fetch(`${API_BASE_URL}/cart/add`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-auth-token": localStorage.getItem("token"), // ✅ fixed to match backend middleware
+          "x-auth-token": localStorage.getItem("token"),
         },
         body: JSON.stringify({
           userId: user._id,
@@ -138,14 +118,13 @@ export const ProductProvider = ({ children }) => {
     }
   };
 
-  // 🛒 Fetch Cart from backend
   const fetchCart = async () => {
     if (!user?._id) return;
     try {
       const res = await fetch(`${API_BASE_URL}/cart/cart/${user._id}`, {
         headers: {
           "Content-Type": "application/json",
-          "x-auth-token": localStorage.getItem("token"), // ✅ fixed to match backend middleware
+          "x-auth-token": localStorage.getItem("token"),
         },
       });
       if (!res.ok) throw new Error("Failed to fetch cart");
@@ -181,5 +160,4 @@ export const ProductProvider = ({ children }) => {
   );
 };
 
-// Custom hook
 export const useProductContext = () => useContext(ProductContext);
