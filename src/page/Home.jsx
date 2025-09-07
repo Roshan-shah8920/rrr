@@ -11,33 +11,35 @@ const Home = () => {
   const [likedProducts, setLikedProducts] = useState({});
   const scrollRef = useRef(null);
 
-  // ✅ Use Vite env variable
+  // ✅ Vite env variable
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   // Fetch products
   const fetchProducts = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/products/product`);
+      if (!res.ok) throw new Error("Failed to fetch products");
       const data = await res.json();
 
+      // ✅ Corrected category filter (spelling matches API)
       const bottleProducts = data.filter(
-        (product) => product.category.toLowerCase() === "bootle"
+        (product) => product.category?.toLowerCase() === "bootle"
       );
       setProducts(bottleProducts);
 
-      // Load wishlist safely
+      // Wishlist safe
       let storedWishlist = [];
       try {
         storedWishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
-      } catch (err) {
+      } catch {
         storedWishlist = [];
       }
 
       const liked = {};
-      storedWishlist.forEach((p) => (liked[p._id] = true));
+      storedWishlist.forEach((p) => p._id && (liked[p._id] = true));
       setLikedProducts(liked);
     } catch (err) {
-      console.error("Error fetching products:", err);
+      console.error("Error fetching products:", err.message);
     }
   };
 
@@ -49,23 +51,19 @@ const Home = () => {
     navigate("/customnext", { state: { product } });
   };
 
-  // Toggle wishlist
   const toggleLike = (product) => {
     setLikedProducts((prev) => {
       const newLiked = { ...prev, [product._id]: !prev[product._id] };
 
-      // Update localStorage safely
       let storedWishlist = [];
       try {
         storedWishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
-      } catch (err) {
+      } catch {
         storedWishlist = [];
       }
 
       if (newLiked[product._id]) {
-        if (!storedWishlist.find((p) => p._id === product._id)) {
-          storedWishlist.push(product);
-        }
+        if (!storedWishlist.find((p) => p._id === product._id)) storedWishlist.push(product);
       } else {
         const index = storedWishlist.findIndex((p) => p._id === product._id);
         if (index > -1) storedWishlist.splice(index, 1);
@@ -77,22 +75,17 @@ const Home = () => {
   };
 
   const scrollLeft = () => {
-    scrollRef.current.scrollBy({
-      left: -scrollRef.current.offsetWidth,
-      behavior: "smooth",
-    });
+    scrollRef.current.scrollBy({ left: -scrollRef.current.offsetWidth, behavior: "smooth" });
   };
 
   const scrollRight = () => {
-    scrollRef.current.scrollBy({
-      left: scrollRef.current.offsetWidth,
-      behavior: "smooth",
-    });
+    scrollRef.current.scrollBy({ left: scrollRef.current.offsetWidth, behavior: "smooth" });
   };
 
   return (
     <>
       <HeroSection />
+
       <div className="container my-5">
         <h2 className="mb-4 fw-bold text-center">Bottle Products</h2>
 
@@ -138,14 +131,10 @@ const Home = () => {
 
                 {/* Product Image */}
                 <img
-                  src={product.images[0]}
+                  src={product.images?.[0] || "fallback.jpg"}
                   className="card-img-top"
                   alt={product.name}
-                  style={{
-                    height: "200px",
-                    objectFit: "contain",
-                    borderRadius: "10px",
-                  }}
+                  style={{ height: "200px", objectFit: "contain", borderRadius: "10px" }}
                 />
 
                 <div className="card-body text-center">
@@ -175,16 +164,12 @@ const Home = () => {
         <About />
       </div>
 
-      {/* CSS for responsive card widths */}
-      <style>
-        {`
-          .hide-scrollbar::-webkit-scrollbar { display: none; }
-          .product-card { width: 23%; }
-
-          @media (max-width: 992px) { .product-card { width: 48% !important; } }
-          @media (max-width: 768px) { .product-card { width: 90% !important; } }
-        `}
-      </style>
+      <style>{`
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .product-card { width: 23%; }
+        @media (max-width: 992px) { .product-card { width: 48% !important; } }
+        @media (max-width: 768px) { .product-card { width: 90% !important; } }
+      `}</style>
     </>
   );
 };
